@@ -143,8 +143,22 @@ if 'current_poll' in st.session_state:
         # Plotly 차트 생성
         fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'xy'}]])
         
-        fig.add_trace(go.Pie(labels=results.index, values=results['득표수'], hole=.3, marker_colors=colors), 1, 1)
-        fig.add_trace(go.Bar(x=results.index, y=results['득표수'], marker_color=colors), 1, 2)
+        fig.add_trace(go.Pie(
+            labels=results.index,
+            values=results['득표수'],
+            hole=.3,
+            marker_colors=colors,
+            textinfo='label+percent',
+            insidetextorientation='radial'
+        ), 1, 1)
+        
+        fig.add_trace(go.Bar(
+            x=results.index,
+            y=results['득표수'],
+            marker_color=colors,
+            text=results['득표수'],
+            textposition='auto'
+        ), 1, 2)
         
         fig.update_layout(
             title_text="투표 결과 시각화",
@@ -168,4 +182,4 @@ else:
 
 # 푸터
 st.markdown("---")
-st.markdown("Made with ❤️ by Your Name")
+st.markdown("Made with ❤️ by 닷커넥터")
