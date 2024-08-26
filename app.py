@@ -9,11 +9,11 @@ st.set_page_config(page_title="투표 시스템", layout="wide")
 
 # 사용자 정의 색상 팔레트 생성 함수
 def generate_color_palette(n):
-    HSV_tuples = [(x * 1.0 / n, 0.5, 0.9) for x in range(n)]
+    HSV_tuples = [(x * 1.0 / n, 0.7, 0.9) for x in range(n)]
     RGB_tuples = [colorsys.hsv_to_rgb(*x) for x in HSV_tuples]
     return ['rgb({},{},{})'.format(int(r*255), int(g*255), int(b*255)) for r, g, b in RGB_tuples]
 
-# Pretendard 폰트 및 추가 스타일 적용
+# Pretendard 폰트 및 추가 스타일 적용 (다크모드 대응 포함)
 st.markdown(
     """
     <style>
@@ -23,6 +23,7 @@ st.markdown(
     }
     .stApp {
         background-color: #f0f4f8;
+        transition: background-color 0.3s ease;
     }
     .stButton>button {
         background-color: #4a90e2;
@@ -42,6 +43,7 @@ st.markdown(
         border: 1px solid #e0e0e0;
         border-radius: 5px;
         padding: 10px;
+        transition: all 0.3s ease;
     }
     .styled-table {
         border-collapse: separate;
@@ -50,6 +52,7 @@ st.markdown(
         border-radius: 10px;
         overflow: hidden;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
     }
     .styled-table thead tr {
         background-color: #4a90e2;
@@ -71,6 +74,37 @@ st.markdown(
     }
     .styled-table tbody tr:hover {
         background-color: #f0f0f0;
+    }
+    /* 다크 모드 대응 */
+    @media (prefers-color-scheme: dark) {
+        .stApp {
+            background-color: #1e1e1e;
+        }
+        .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+            background-color: #2b2b2b;
+            color: #ffffff;
+            border-color: #4a4a4a;
+        }
+        .styled-table {
+            box-shadow: 0 4px 6px rgba(255,255,255,0.1);
+        }
+        .styled-table thead tr {
+            background-color: #4a90e2;
+        }
+        .styled-table tbody tr {
+            background-color: #2b2b2b;
+            color: #ffffff;
+            border-bottom: 1px solid #4a4a4a;
+        }
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #353535;
+        }
+        .styled-table tbody tr:hover {
+            background-color: #3a3a3a;
+        }
+        .stMarkdown, .stMarkdown p {
+            color: #ffffff;
+        }
     }
     </style>
     """,
@@ -158,25 +192,37 @@ if 'current_poll' in st.session_state:
             textfont=dict(color='#ffffff')
         ), 1, 2)
         
+        # 다크모드 감지 및 적용
+        dark_mode = False
+        try:
+            dark_mode = st.get_theme() == 'dark'
+        except:
+            pass
+
+        bg_color = '#1e1e1e' if dark_mode else '#ffffff'
+        text_color = '#ffffff' if dark_mode else '#333333'
+        grid_color = '#3a3a3a' if dark_mode else '#f0f0f0'
+        
         fig.update_layout(
-            title=dict(text="투표 결과 시각화", x=0.5, font=dict(size=24, color='#333333')),
+            title=dict(text="투표 결과 시각화", x=0.5, font=dict(size=24, color=text_color)),
             height=600,
             width=1000,
-            font=dict(family="Pretendard", size=14, color='#333333'),
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(family="Pretendard", size=14, color=text_color),
+            paper_bgcolor=bg_color,
+            plot_bgcolor=bg_color,
             margin=dict(t=80, b=40, l=40, r=40),
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
                 y=1.02,
                 xanchor="right",
-                x=1
+                x=1,
+                font=dict(color=text_color)
             )
         )
         
-        fig.update_xaxes(showgrid=False, showline=True, linewidth=2, linecolor='#e0e0e0', tickfont=dict(size=12))
-        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='#f0f0f0', showline=True, linewidth=2, linecolor='#e0e0e0', tickfont=dict(size=12))
+        fig.update_xaxes(showgrid=False, showline=True, linewidth=2, linecolor=grid_color, tickfont=dict(size=12, color=text_color))
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor=grid_color, showline=True, linewidth=2, linecolor=grid_color, tickfont=dict(size=12, color=text_color))
         
         st.plotly_chart(fig, use_container_width=True)
         
