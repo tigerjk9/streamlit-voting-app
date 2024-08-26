@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import sys
 
+# 페이지 설정 (반드시 다른 Streamlit 명령어보다 먼저 실행되어야 함)
+st.set_page_config(page_title="투표 시스템", layout="wide")
+
 # 디버깅 정보
 st.write("Python version:", sys.version)
 st.write("Installed packages:")
 st.write(list(sys.modules.keys()))
-
-# 페이지 설정
-st.set_page_config(page_title="투표 시스템", layout="wide")
 
 # Pretendard 폰트 및 추가 스타일 적용 (다크 모드 대응 포함)
 st.markdown(
@@ -179,4 +179,4 @@ else:
 
 # 푸터
 st.markdown("---")
-st.markdown("Made with 닷커넥터")
+st.markdown("Made with ❤️ by Your Name")
