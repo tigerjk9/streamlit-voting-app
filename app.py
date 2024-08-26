@@ -2,85 +2,75 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly.express as px
+import colorsys
 
-# 페이지 설정 (반드시 다른 Streamlit 명령어보다 먼저 실행되어야 함)
+# 페이지 설정
 st.set_page_config(page_title="투표 시스템", layout="wide")
 
-# Pretendard 폰트 및 추가 스타일 적용 (다크 모드 대응 포함)
+# 사용자 정의 색상 팔레트 생성 함수
+def generate_color_palette(n):
+    HSV_tuples = [(x * 1.0 / n, 0.5, 0.9) for x in range(n)]
+    RGB_tuples = [colorsys.hsv_to_rgb(*x) for x in HSV_tuples]
+    return ['rgb({},{},{})'.format(int(r*255), int(g*255), int(b*255)) for r, g, b in RGB_tuples]
+
+# Pretendard 폰트 및 추가 스타일 적용
 st.markdown(
     """
     <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     html, body, [class*="css"] {
         font-family: 'Pretendard', sans-serif !important;
-        color: #333333;
     }
     .stApp {
-        background-color: #f0f2f6;
+        background-color: #f0f4f8;
     }
     .stButton>button {
-        background-color: #4CAF50;
+        background-color: #4a90e2;
         color: white;
         border-radius: 5px;
-        font-family: 'Pretendard', sans-serif !important;
+        border: none;
+        padding: 10px 20px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #357abD;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         background-color: #ffffff;
-        color: #333333;
-        font-family: 'Pretendard', sans-serif !important;
+        border: 1px solid #e0e0e0;
+        border-radius: 5px;
+        padding: 10px;
     }
     .styled-table {
-        border-collapse: collapse;
-        margin: 25px 0;
-        font-size: 0.9em;
-        font-family: 'Pretendard', sans-serif;
-        min-width: 400px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        border-collapse: separate;
+        border-spacing: 0;
         width: 100%;
-        color: #333333;
-        background-color: #ffffff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .styled-table thead tr {
-        background-color: #009879;
+        background-color: #4a90e2;
         color: #ffffff;
         text-align: left;
     }
-    .styled-table th,
-    .styled-table td {
+    .styled-table th, .styled-table td {
         padding: 12px 15px;
     }
     .styled-table tbody tr {
         border-bottom: 1px solid #dddddd;
+        transition: background-color 0.3s ease;
     }
     .styled-table tbody tr:nth-of-type(even) {
-        background-color: #f3f3f3;
+        background-color: #f8f8f8;
     }
     .styled-table tbody tr:last-of-type {
-        border-bottom: 2px solid #009879;
+        border-bottom: 2px solid #4a90e2;
     }
-    /* 다크 모드 대응 */
-    @media (prefers-color-scheme: dark) {
-        html, body, [class*="css"] {
-            color: #ffffff;
-        }
-        .stApp {
-            background-color: #1e1e1e;
-        }
-        .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-            background-color: #2b2b2b;
-            color: #ffffff;
-        }
-        .styled-table {
-            color: #ffffff;
-            background-color: #2b2b2b;
-        }
-        .styled-table tbody tr:nth-of-type(even) {
-            background-color: #3a3a3a;
-        }
-        .stPlotlyChart {
-            background-color: #2b2b2b;
-        }
+    .styled-table tbody tr:hover {
+        background-color: #f0f0f0;
     }
     </style>
     """,
@@ -88,7 +78,7 @@ st.markdown(
 )
 
 # 제목
-st.title("🗳️ 간편한 투표 시스템")
+st.title("🗳️ 고급 투표 시스템")
 
 # 초기화 함수
 def reset_poll():
@@ -138,41 +128,57 @@ if 'current_poll' in st.session_state:
         results['득표율'] = results['득표수'] / total_votes * 100
         
         # 색상 팔레트 생성
-        colors = px.colors.qualitative.Plotly[:len(results)]
+        colors = generate_color_palette(len(results))
         
         # Plotly 차트 생성
-        fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'xy'}]])
+        fig = make_subplots(
+            rows=1, cols=2,
+            specs=[[{'type':'domain'}, {'type':'xy'}]],
+            subplot_titles=('득표율', '득표수'),
+        )
         
         fig.add_trace(go.Pie(
             labels=results.index,
             values=results['득표수'],
-            hole=.3,
-            marker_colors=colors,
+            hole=.4,
+            marker=dict(colors=colors, line=dict(color='#ffffff', width=2)),
             textinfo='label+percent',
-            insidetextorientation='radial'
+            insidetextorientation='radial',
+            textfont=dict(size=12, color='#ffffff'),
+            pull=[0.1 if i == results['득표수'].idxmax() else 0 for i in results.index]
         ), 1, 1)
         
         fig.add_trace(go.Bar(
             x=results.index,
             y=results['득표수'],
-            marker_color=colors,
+            marker=dict(color=colors, line=dict(color='#ffffff', width=1.5)),
             text=results['득표수'],
-            textposition='auto'
+            textposition='auto',
+            hoverinfo='x+y',
+            textfont=dict(color='#ffffff')
         ), 1, 2)
         
         fig.update_layout(
-            title_text="투표 결과 시각화",
-            height=500,
-            width=800,
-            font=dict(family="Pretendard"),
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)"
+            title=dict(text="투표 결과 시각화", x=0.5, font=dict(size=24, color='#333333')),
+            height=600,
+            width=1000,
+            font=dict(family="Pretendard", size=14, color='#333333'),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            margin=dict(t=80, b=40, l=40, r=40),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
         )
         
-        # x축 레이블 회전
-        fig.update_xaxes(tickangle=45)
+        fig.update_xaxes(showgrid=False, showline=True, linewidth=2, linecolor='#e0e0e0', tickfont=dict(size=12))
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='#f0f0f0', showline=True, linewidth=2, linecolor='#e0e0e0', tickfont=dict(size=12))
         
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
         
         # 표 형태로 결과 표시 (새로운 스타일 적용)
         st.markdown(results.style.format({'득표율': '{:.1f}%'}).to_html(classes='styled-table'), unsafe_allow_html=True)
