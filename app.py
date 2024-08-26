@@ -1,18 +1,23 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+import sys
+
+# 디버깅 정보
+st.write("Python version:", sys.version)
+st.write("Installed packages:")
+st.write(list(sys.modules.keys()))
 
 # 페이지 설정
 st.set_page_config(page_title="투표 시스템", layout="wide")
 
-# Pretendard 폰트 및 추가 스타일 적용
+# Pretendard 폰트 및 추가 스타일 적용 (다크 모드 대응 포함)
 st.markdown(
     """
     <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     html, body, [class*="css"] {
         font-family: 'Pretendard', sans-serif !important;
+        color: #333333;
     }
     .stApp {
         background-color: #f0f2f6;
@@ -25,9 +30,9 @@ st.markdown(
     }
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         background-color: #ffffff;
+        color: #333333;
         font-family: 'Pretendard', sans-serif !important;
     }
-    /* 새로운 표 스타일 */
     .styled-table {
         border-collapse: collapse;
         margin: 25px 0;
@@ -36,6 +41,8 @@ st.markdown(
         min-width: 400px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         width: 100%;
+        color: #333333;
+        background-color: #ffffff;
     }
     .styled-table thead tr {
         background-color: #009879;
@@ -54,6 +61,29 @@ st.markdown(
     }
     .styled-table tbody tr:last-of-type {
         border-bottom: 2px solid #009879;
+    }
+    /* 다크 모드 대응 */
+    @media (prefers-color-scheme: dark) {
+        html, body, [class*="css"] {
+            color: #ffffff;
+        }
+        .stApp {
+            background-color: #1e1e1e;
+        }
+        .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+            background-color: #2b2b2b;
+            color: #ffffff;
+        }
+        .styled-table {
+            color: #ffffff;
+            background-color: #2b2b2b;
+        }
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #3a3a3a;
+        }
+        .stPlotlyChart {
+            background-color: #2b2b2b;
+        }
     }
     </style>
     """,
@@ -110,40 +140,34 @@ if 'current_poll' in st.session_state:
         total_votes = results['득표수'].sum()
         results['득표율'] = results['득표수'] / total_votes * 100
         
-        # Plotly를 사용한 차트 생성
-        fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'xy'}]])
-        
-        # 파이 차트
-        fig.add_trace(go.Pie(
-            labels=results.index, 
-            values=results['득표수'], 
-            hole=.3,
-            textinfo='label+percent',
-            insidetextorientation='radial',
-            textfont=dict(family="Pretendard")
-        ), 1, 1)
-        
-        # 막대 그래프
-        fig.add_trace(go.Bar(
-            x=results.index, 
-            y=results['득표수'],
-            text=results['득표수'],
-            textposition='auto',
-            marker_color='royalblue',
-            textfont=dict(family="Pretendard")
-        ), 1, 2)
-        
-        fig.update_layout(
-            title_text="투표 결과 시각화",
-            height=500,
-            width=800,
-            showlegend=False,
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(family="Pretendard"),
-        )
-        
-        fig.update_xaxes(title_text="", showgrid=False)
-        fig.update_yaxes(title_text="득표수", showgrid=True, gridcolor='lightgray')
+        # Plotly 차트 생성
+        fig = {
+            "data": [
+                {
+                    "type": "pie",
+                    "labels": results.index.tolist(),
+                    "values": results['득표수'].tolist(),
+                    "hole": .3,
+                    "domain": {"row": 0, "column": 0}
+                },
+                {
+                    "type": "bar",
+                    "x": results.index.tolist(),
+                    "y": results['득표수'].tolist(),
+                    "marker": {"color": "royalblue"},
+                    "domain": {"row": 0, "column": 1}
+                }
+            ],
+            "layout": {
+                "title": "투표 결과 시각화",
+                "grid": {"rows": 1, "columns": 2},
+                "height": 500,
+                "width": 800,
+                "font": {"family": "Pretendard"},
+                "paper_bgcolor": "rgba(0,0,0,0)",
+                "plot_bgcolor": "rgba(0,0,0,0)"
+            }
+        }
         
         st.plotly_chart(fig)
         
@@ -155,4 +179,4 @@ else:
 
 # 푸터
 st.markdown("---")
-st.markdown("Made with by 닷커넥터")
+st.markdown("Made with 닷커넥터")
