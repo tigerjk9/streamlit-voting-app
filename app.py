@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 
 # 페이지 설정 (반드시 다른 Streamlit 명령어보다 먼저 실행되어야 함)
 st.set_page_config(page_title="투표 시스템", layout="wide")
@@ -136,11 +137,14 @@ if 'current_poll' in st.session_state:
         total_votes = results['득표수'].sum()
         results['득표율'] = results['득표수'] / total_votes * 100
         
+        # 색상 팔레트 생성
+        colors = px.colors.qualitative.Plotly[:len(results)]
+        
         # Plotly 차트 생성
         fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'xy'}]])
         
-        fig.add_trace(go.Pie(labels=results.index, values=results['득표수'], hole=.3), 1, 1)
-        fig.add_trace(go.Bar(x=results.index, y=results['득표수'], marker_color='royalblue'), 1, 2)
+        fig.add_trace(go.Pie(labels=results.index, values=results['득표수'], hole=.3, marker_colors=colors), 1, 1)
+        fig.add_trace(go.Bar(x=results.index, y=results['득표수'], marker_color=colors), 1, 2)
         
         fig.update_layout(
             title_text="투표 결과 시각화",
@@ -150,6 +154,9 @@ if 'current_poll' in st.session_state:
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)"
         )
+        
+        # x축 레이블 회전
+        fig.update_xaxes(tickangle=45)
         
         st.plotly_chart(fig)
         
@@ -161,4 +168,4 @@ else:
 
 # 푸터
 st.markdown("---")
-st.markdown("Made with 닷커넥터")
+st.markdown("Made with ❤️ by Your Name")
