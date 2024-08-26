@@ -1,14 +1,10 @@
 import streamlit as st
 import pandas as pd
-import sys
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # 페이지 설정 (반드시 다른 Streamlit 명령어보다 먼저 실행되어야 함)
 st.set_page_config(page_title="투표 시스템", layout="wide")
-
-# 디버깅 정보
-st.write("Python version:", sys.version)
-st.write("Installed packages:")
-st.write(list(sys.modules.keys()))
 
 # Pretendard 폰트 및 추가 스타일 적용 (다크 모드 대응 포함)
 st.markdown(
@@ -141,33 +137,19 @@ if 'current_poll' in st.session_state:
         results['득표율'] = results['득표수'] / total_votes * 100
         
         # Plotly 차트 생성
-        fig = {
-            "data": [
-                {
-                    "type": "pie",
-                    "labels": results.index.tolist(),
-                    "values": results['득표수'].tolist(),
-                    "hole": .3,
-                    "domain": {"row": 0, "column": 0}
-                },
-                {
-                    "type": "bar",
-                    "x": results.index.tolist(),
-                    "y": results['득표수'].tolist(),
-                    "marker": {"color": "royalblue"},
-                    "domain": {"row": 0, "column": 1}
-                }
-            ],
-            "layout": {
-                "title": "투표 결과 시각화",
-                "grid": {"rows": 1, "columns": 2},
-                "height": 500,
-                "width": 800,
-                "font": {"family": "Pretendard"},
-                "paper_bgcolor": "rgba(0,0,0,0)",
-                "plot_bgcolor": "rgba(0,0,0,0)"
-            }
-        }
+        fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'xy'}]])
+        
+        fig.add_trace(go.Pie(labels=results.index, values=results['득표수'], hole=.3), 1, 1)
+        fig.add_trace(go.Bar(x=results.index, y=results['득표수'], marker_color='royalblue'), 1, 2)
+        
+        fig.update_layout(
+            title_text="투표 결과 시각화",
+            height=500,
+            width=800,
+            font=dict(family="Pretendard"),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)"
+        )
         
         st.plotly_chart(fig)
         
@@ -179,4 +161,4 @@ else:
 
 # 푸터
 st.markdown("---")
-st.markdown("Made with ❤️ by Your Name")
+st.markdown("Made with 닷커넥터")
